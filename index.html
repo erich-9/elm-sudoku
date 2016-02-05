@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <title>Elm Sudoku</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/gh-buttons.css">
+    <link rel="stylesheet" href="css/style.css">
+  </head>
+
+  <body>
+    <script src="elm.js"></script>
+    <script src="js/utilities.js"></script>
+    <script src="js/admissible_cover.js"></script>
+    <script src="js/sudoku.js"></script>
+    <script src="js/sudoku_list.js"></script>
+    <script>
+
+      function main()
+      {
+        var rawState;
+        if (typeof localStorage !== 'undefined') {
+          rawState = localStorage.getItem('elm-sudoku-state');
+        }
+
+        var ports =
+          { storedState       : rawState === 'true'
+          , initialSudoku     : newSerializedSudoku()
+          , newAvailable      : null
+          , solutionAvailable : []
+          };
+
+        var main = Elm.fullscreen(Elm.Main, ports);
+
+        if (typeof localStorage !== 'undefined') {
+          main.ports.requestSaveState.subscribe(function(state) {
+            localStorage.setItem('elm-sudoku-state', state.toString());
+          });
+        }
+
+        main.ports.requestNew.subscribe(function() {
+          main.ports.newAvailable.send(newSerializedSudoku());
+        });
+
+        main.ports.requestSolution.subscribe(function(ssdk) {
+          if (ssdk === null) {
+            return;
+          }
+
+          var sdk = new Sudoku(ssdk.n);
+          ssdk.board.forEach(sdk.set);
+
+          var P = sdk.toAdmissibleCoverProblem(), list = [];
+          P.traverseAdmissibleCovers(sdk.appendSerializedSolution(list), 2);
+
+          main.ports.solutionAvailable.send(list);
+        });
+      }
+
+
+      function newSerializedSudoku()
+      {
+        var l = sudokuList.length, i = Math.floor(Math.random() * l);
+        return (new Sudoku(3, sudokuList[i])).serialize();
+      }
+
+
+      main();
+
+    </script>
+  </body>
+
+</html>
