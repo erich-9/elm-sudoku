@@ -1,0 +1,118 @@
+/* Slightly modified */
+
+/* -----------------------------------------------
+ * CSS3 GITHUB BUTTONS (Nicolas Gallagher)
+ * Licensed under Unlicense
+ * http://github.com/necolas/css3-github-buttons
+ * -----------------------------------------------
+ */
+
+.button
+{
+  position: relative;
+  overflow: visible;
+  display: inline-block;
+  padding: 0.5em 0.5em;
+  border: 1px solid #d4d4d4;
+  margin: 0;
+  text-decoration: none;
+  text-align: center;
+  text-shadow: 1px 1px 0 #fff;
+  font: 11px/normal sans-serif;
+  color: #444;
+  white-space: nowrap;
+  cursor: pointer;
+  outline: none;
+  background-color: #ececec;
+  background-clip: padding-box;
+  border-radius: 0.2em;
+}
+
+.button:hover,
+.button:active
+{
+  border-color: #3072b3;
+  border-bottom-color: #2a65a0;
+  text-decoration: none;
+  text-shadow: -1px -1px 0 rgba(0,0,0,0.3);
+  color: #fff;
+  background-color: #3c8dde;
+}
+
+.button:active
+{
+  border-bottom-color: #3884cd;
+}
+
+/* overrides extra padding on button elements in Firefox */
+
+.button::-moz-focus-inner
+{
+  padding: 0;
+  border: 0;
+}
+
+.button.danger
+{
+  color: #900;
+}
+
+.button.danger:hover,
+.button.danger:active
+{
+  border-color: #b53f3a;
+  border-bottom-color: #a0302a;
+  color: #fff;
+  background-color: #dc5f59;
+}
+
+.button.danger:active
+{
+  border-color: #a0302a;
+  border-bottom-color: #bf4843;
+  background-color: #b33630;
+}
+
+.button:disabled
+{
+  opacity: 0.5;
+}
+
+.button-group
+{
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+}
+
+.button + .button,
+.button + .button-group,
+.button-group + .button,
+.button-group + .button-group
+{
+  margin-left: 15px;
+}
+
+.button-group .button
+{
+  float: left;
+  margin-left: 0px;
+}
+
+.button-group > .button:not(:first-child):not(:last-child)
+{
+  border-radius: 0;
+}
+
+.button-group > .button:first-child
+{
+  margin-left: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.button-group > .button:last-child
+{
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
