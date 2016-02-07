@@ -129,7 +129,7 @@ arrayAny f =
 
 arrayIndexedFoldl : (Pos -> a -> b -> b) -> b -> Array a -> b
 arrayIndexedFoldl f b =
-  Array.foldl (uncurry f) b << Array.indexedMap (,)
+  snd << Array.foldl (\a ( i, b' ) -> ( i + 1, f i a b' )) ( 0, b )
 
 
 arrayUpdate : Pos -> (a -> a) -> Array a -> Array a
