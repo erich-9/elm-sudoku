@@ -37,10 +37,10 @@ type alias InitData =
 init : InitData -> Model
 init { cell, n, fixNonEmpty, showCandidates } =
   case cell of
-    Left value ->
+    FilledIn value ->
       (ECModel << EC.init) { value = Just value, fix = fixNonEmpty }
 
-    Right candidates ->
+    Candidates candidates ->
       if showCandidates then
         (CCModel << CC.init)
           { candidates = candidates, n = n }
@@ -48,13 +48,13 @@ init { cell, n, fixNonEmpty, showCandidates } =
         (ECModel << EC.init) { value = Nothing, fix = False }
 
 
-initWithNonFixedEntryCell : Cell -> Model
-initWithNonFixedEntryCell cell =
-  (ECModel << EC.init) { value = fromLeft cell, fix = False }
+initWithNonFixedEntry : Cell -> Model
+initWithNonFixedEntry cell =
+  (ECModel << EC.init) { value = filledIn cell, fix = False }
 
 
-tryToInitWithCandidateCell : Cell -> Int -> Bool -> Model
-tryToInitWithCandidateCell cell n showCandidates =
+tryToInitWithCandidates : Cell -> Int -> Bool -> Model
+tryToInitWithCandidates cell n showCandidates =
   init
     { cell = cell, n = n, fixNonEmpty = False, showCandidates = showCandidates }
 

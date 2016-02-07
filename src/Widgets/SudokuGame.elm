@@ -299,7 +299,7 @@ update act m =
     Fix ->
       let
         f _ c sc =
-          if isLeft c then
+          if isFilledIn c then
             SC.update (SC.ECAction (EC.SetFixed True)) sc
           else
             sc
@@ -358,13 +358,13 @@ update act m =
         eInit c sc =
           case ( m.showCandidates, sc ) of
             ( False, SC.CCModel _ ) ->
-              SC.initWithNonFixedEntryCell c
+              SC.initWithNonFixedEntry c
 
             _ ->
               sc
 
         cInit c _ =
-          SC.tryToInitWithCandidateCell c m.sudoku.n True
+          SC.tryToInitWithCandidates c m.sudoku.n True
 
         warning =
           "To remove, click again."
@@ -394,13 +394,13 @@ update act m =
           clustersXFoldl p (candidateUpdate (insert v)) pm
 
         sc =
-          SC.tryToInitWithCandidateCell (Right ac) m.sudoku.n m.showCandidates
+          SC.tryToInitWithCandidates (Candidates ac) m.sudoku.n m.showCandidates
 
         ac =
           allCandidates m.sudoku.n
 
         mv =
-          Maybe.andThen (Array.get p m.sudoku.board) fromLeft
+          Array.get p m.sudoku.board `Maybe.andThen` filledIn
       in
         makeHistory m { sudoku = pm'.sudoku, cells = pm'.cells }
 
@@ -419,7 +419,7 @@ update act m =
           (SC.ECModel << EC.init) { value = Just v, fix = False }
 
         maybeCandidates p =
-          Maybe.andThen (Array.get p m.sudoku.board) fromRight
+          Array.get p m.sudoku.board `Maybe.andThen` candidates
       in
         mapWithDefault m f (maybeCandidates p)
 
@@ -438,7 +438,7 @@ update act m =
           SC.update (SC.CCAction (CC.ToggleEntry v)) sc
 
         maybeCandidates p =
-          Maybe.andThen (Array.get p m.sudoku.board) fromRight
+          Array.get p m.sudoku.board `Maybe.andThen` candidates
       in
         if occursInClustersX m.sudoku p v then
           m
@@ -563,10 +563,10 @@ wipeSlateClean present =
             , cheated = present.cheated || allFilledIn present.sudoku
           }
       else
-        Maybe.andThen hm.predecessor f
+        hm.predecessor `Maybe.andThen` f
 
     mm' =
-      Maybe.map tidyUpdate (Maybe.andThen present.predecessor f)
+      Maybe.map tidyUpdate (present.predecessor `Maybe.andThen` f)
   in
     if' present.clean (Just present) mm'
 
@@ -585,13 +585,13 @@ reinitCells : Model -> Model
 reinitCells m =
   let
     f _ c sc =
-      if' (isRight c) (g c) sc
+      if' (not (isFilledIn c)) (g c) sc
 
     g c =
       if m.showCandidates then
-        SC.tryToInitWithCandidateCell c m.sudoku.n m.showCandidates
+        SC.tryToInitWithCandidates c m.sudoku.n m.showCandidates
       else
-        SC.initWithNonFixedEntryCell c
+        SC.initWithNonFixedEntry c
   in
     updateCellsZipped m f
 
@@ -601,10 +601,10 @@ initWithSolution m solution =
   let
     f c sc =
       case ( c, sc ) of
-        ( Left v, SC.ECModel ecm ) ->
+        ( FilledIn v, SC.ECModel ecm ) ->
           SC.ECModel { ecm | value = Just v }
 
-        ( Left v, _ ) ->
+        ( FilledIn v, _ ) ->
           (SC.ECModel << EC.init) { value = Just v, fix = False }
 
         _ ->
@@ -634,14 +634,14 @@ candidateUpdate f p c pm =
     sc' vs =
       SC.update (SC.CCAction (CC.SetCandidates vs))
   in
-    mapWithDefault pm g (fromRight c)
+    mapWithDefault pm g (candidates c)
 
 
 simpleElimination : Premodel -> Premodel
 simpleElimination pm =
   let
     f p c pm =
-      mapWithDefault pm (rm p pm) (fromLeft c)
+      mapWithDefault pm (rm p pm) (filledIn c)
 
     rm p pm v =
       clustersXFoldl p (candidateUpdate (remove v)) pm

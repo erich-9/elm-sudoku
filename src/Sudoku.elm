@@ -13,8 +13,9 @@ type alias Board =
   Array Cell
 
 
-type alias Cell =
-  Either Value Values
+type Cell
+  = FilledIn Value
+  | Candidates Values
 
 
 type alias Clusters =
@@ -33,14 +34,14 @@ type SolutionResponse
 
 allFilledIn : Sudoku -> Bool
 allFilledIn sudoku =
-  arrayAll isLeft sudoku.board
+  arrayAll isFilledIn sudoku.board
 
 
 blankSudoku : Int -> Sudoku
 blankSudoku n =
   let
     acs =
-      Right (allCandidates n)
+      Candidates (allCandidates n)
   in
     init n <| Array.initialize (n * n * n * n) (always acs)
 
@@ -89,12 +90,12 @@ init order board =
 
 setValue : Value -> Pos -> Sudoku -> Sudoku
 setValue v p sudoku =
-  { sudoku | board = Array.set p (Left v) sudoku.board }
+  { sudoku | board = Array.set p (FilledIn v) sudoku.board }
 
 
 setCandidates : Values -> Pos -> Sudoku -> Sudoku
 setCandidates candidates p sudoku =
-  { sudoku | board = Array.set p (Right candidates) sudoku.board }
+  { sudoku | board = Array.set p (Candidates candidates) sudoku.board }
 
 
 toggleCandidate : Value -> Pos -> Sudoku -> Sudoku
@@ -103,7 +104,7 @@ toggleCandidate v p sudoku =
     f candidates =
       toggle v candidates
   in
-    { sudoku | board = arrayUpdate p (mapToRight f) sudoku.board }
+    { sudoku | board = arrayUpdate p (mapToCandidates f) sudoku.board }
 
 
 clustersFoldl : Sudoku -> (Pos -> Cell -> a -> a) -> a -> a
@@ -134,7 +135,7 @@ occursInClustersX : Sudoku -> Pos -> Value -> Bool
 occursInClustersX sudoku p v =
   let
     f _ c a =
-      mapWithDefault a (\w -> a || w == v) (fromLeft c)
+      mapWithDefault a (\w -> a || w == v) (filledIn c)
   in
     clustersXFoldl sudoku p f False
 
@@ -148,10 +149,10 @@ serialize s =
   let
     f x =
       case x of
-        Left v ->
+        FilledIn v ->
           [ v ]
 
-        Right candidates ->
+        Candidates candidates ->
           toList candidates
   in
     { n = s.n, board = List.map f (Array.toList s.board) }
@@ -163,10 +164,10 @@ deserialize s =
     f x =
       case x of
         v :: [] ->
-          Left v
+          FilledIn v
 
         _ ->
-          Right (fromList x)
+          Candidates (fromList x)
   in
     init s.n <| Array.map f (Array.fromList s.board)
 
@@ -226,3 +227,47 @@ remove =
 toggle : Value -> Values -> Values
 toggle v vs =
   if' (member v vs) (remove v vs) (insert v vs)
+
+
+
+-- Convenience functions
+
+
+isFilledIn : Cell -> Bool
+isFilledIn x =
+  case x of
+    FilledIn _ ->
+      True
+
+    _ ->
+      False
+
+
+filledIn : Cell -> Maybe Value
+filledIn x =
+  case x of
+    FilledIn a ->
+      Just a
+
+    _ ->
+      Nothing
+
+
+candidates : Cell -> Maybe Values
+candidates x =
+  case x of
+    Candidates b ->
+      Just b
+
+    _ ->
+      Nothing
+
+
+mapToCandidates : (Values -> Values) -> Cell -> Cell
+mapToCandidates f x =
+  case x of
+    Candidates b ->
+      Candidates (f b)
+
+    _ ->
+      x

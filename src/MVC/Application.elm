@@ -18,8 +18,9 @@ type alias State mwModel mwNotification =
   ( mwModel, List mwNotification )
 
 
-type alias News mwAction mwNotification externalNotification =
-  Either (Widget.News mwAction mwNotification) externalNotification
+type News mwAction mwNotification externalNotification
+  = Internal (Widget.News mwAction mwNotification)
+  | External externalNotification
 
 
 run : MVC mwM mwA mwN extN out -> Signal (State mwM mwN) -> Signal out
@@ -32,10 +33,10 @@ initState { mwInitModel, mwView, mwUpdate, externalEvents, updateExternal } =
   let
     f event ( m, _ ) =
       case event of
-        Left mwNews ->
+        Internal mwNews ->
           ( updateInternal mwUpdate mwNews.actions m, mwNews.notifications )
 
-        Right externalNtf ->
+        External externalNtf ->
           ( updateExternal externalNtf m, [] )
   in
     Signal.foldp f ( mwInitModel, [] ) (events externalEvents)
@@ -43,7 +44,8 @@ initState { mwInitModel, mwView, mwUpdate, externalEvents, updateExternal } =
 
 events : List (Signal extN) -> Signal (News mwA mwN extN)
 events externalEvents =
-  (Signal.map Left mailbox.signal :: List.map (Signal.map Right) externalEvents)
+  Signal.map Internal mailbox.signal
+    :: List.map (Signal.map External) externalEvents
     |> Signal.mergeMany
 
 
