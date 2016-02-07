@@ -339,7 +339,7 @@ update act m =
           else if pEmpty then
             ( updateCellZipped m' p cInit, "" )
           else
-            mapExtractWithDefault ( m', warning ) g m.selected
+            Maybe.withDefault ( m', warning ) (m.selected `Maybe.andThen` g)
 
         f ( q, x ) =
           if' (q /= p) (updateCellZipped m q eInit) m

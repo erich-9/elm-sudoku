@@ -87,16 +87,6 @@ mapWithDefault b f =
   Maybe.withDefault b << Maybe.map f
 
 
-mapExtractWithDefault : b -> (a -> Maybe b) -> Maybe a -> b
-mapExtractWithDefault b f ma =
-  case Maybe.map f ma of
-    Just (Just b') ->
-      b'
-
-    _ ->
-      b
-
-
 
 -- List
 
